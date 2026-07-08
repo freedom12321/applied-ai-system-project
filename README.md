@@ -175,63 +175,463 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Profile used: `genre=pop`, `mood=happy`, `energy=0.8`
+Six profiles tested: three standard and three adversarial edge cases.
+Run with: `python -m src.main`
+
+---
+
+### Profile 1 — High-Energy Pop
 
 ```
-Loaded songs: 18
-
-=======================================================
-  USER PROFILE
-=======================================================
+============================================================
+  PROFILE: High-Energy Pop
+============================================================
   genre       : pop
   mood        : happy
-  energy      : 0.8
+  energy      : 0.85
+  acousticness: 0.12
+  valence     : 0.8
+  tempo_bpm   : 125
 
-=======================================================
-  TOP RECOMMENDATIONS
-=======================================================
+  TOP 5 RECOMMENDATIONS
+  --------------------------------------------------------
 
   #1  Sunrise City  —  Neon Echo
-       Score : 69.6 / 100
+       Score : 97.8 / 100
        Genre : pop  |  Mood: happy
        Why   :
          • genre match: 'pop' (+30.0)
          • mood exact match: 'happy' (+20.0)
-         • energy close: 0.82 vs target 0.8 (+19.6)
+         • energy close: 0.82 vs target 0.85 (+19.4)
+         • acousticness close: 0.18 vs target 0.12 (+14.1)
+         • valence close: 0.84 vs target 0.8 (+9.6)
+         • tempo: 118.0 bpm vs target 125 bpm (+4.7)
 
   #2  Gym Hero  —  Max Pulse
-       Score : 47.4 / 100
+       Score : 76.7 / 100
        Genre : pop  |  Mood: intense
        Why   :
          • genre match: 'pop' (+30.0)
          • mood mismatch: 'intense' vs 'happy' (+0.0)
-         • energy close: 0.93 vs target 0.8 (+17.4)
+         • energy close: 0.93 vs target 0.85 (+18.4)
+         • acousticness close: 0.05 vs target 0.12 (+13.9)
+         • valence close: 0.77 vs target 0.8 (+9.7)
+         • tempo: 132.0 bpm vs target 125 bpm (+4.7)
 
   #3  Rooftop Lights  —  Indigo Parade
-       Score : 39.2 / 100
+       Score : 64.6 / 100
        Genre : indie pop  |  Mood: happy
        Why   :
          • genre mismatch: 'indie pop' vs 'pop' (+0.0)
          • mood exact match: 'happy' (+20.0)
-         • energy close: 0.76 vs target 0.8 (+19.2)
+         • energy close: 0.76 vs target 0.85 (+18.2)
+         • acousticness close: 0.35 vs target 0.12 (+11.6)
+         • valence close: 0.81 vs target 0.8 (+9.9)
+         • tempo: 124.0 bpm vs target 125 bpm (+5.0)
 
   #4  Groove Theory  —  Funky Dept
-       Score : 29.8 / 100
+       Score : 54.5 / 100
        Genre : funk  |  Mood: upbeat
        Why   :
          • genre mismatch: 'funk' vs 'pop' (+0.0)
          • mood compatible: 'upbeat' is in same group as 'happy' (+10.0)
-         • energy close: 0.79 vs target 0.8 (+19.8)
+         • energy close: 0.79 vs target 0.85 (+18.8)
+         • acousticness close: 0.3 vs target 0.12 (+12.3)
+         • valence close: 0.88 vs target 0.8 (+9.2)
+         • tempo: 108.0 bpm vs target 125 bpm (+4.2)
 
   #5  Velvet Hours  —  Sable June
-       Score : 25.0 / 100
+       Score : 47.3 / 100
        Genre : r&b  |  Mood: romantic
        Why   :
          • genre mismatch: 'r&b' vs 'pop' (+0.0)
          • mood compatible: 'romantic' is in same group as 'happy' (+10.0)
-         • energy close: 0.55 vs target 0.8 (+15.0)
+         • energy far: 0.55 vs target 0.85 (+14.0)
+         • acousticness far: 0.45 vs target 0.12 (+10.1)
+         • valence close: 0.76 vs target 0.8 (+9.6)
+         • tempo: 95.0 bpm vs target 125 bpm (+3.6)
 
-=======================================================
+============================================================
+```
+
+---
+
+### Profile 2 — Chill Lofi
+
+```
+============================================================
+  PROFILE: Chill Lofi
+============================================================
+  genre       : lofi
+  mood        : chill
+  energy      : 0.39
+  acousticness: 0.78
+  valence     : 0.58
+  tempo_bpm   : 77
+
+  TOP 5 RECOMMENDATIONS
+  --------------------------------------------------------
+
+  #1  Midnight Coding  —  LoRoom
+       Score : 98.1 / 100
+       Genre : lofi  |  Mood: chill
+       Why   :
+         • genre match: 'lofi' (+30.0)
+         • mood exact match: 'chill' (+20.0)
+         • energy close: 0.42 vs target 0.39 (+19.4)
+         • acousticness close: 0.71 vs target 0.78 (+13.9)
+         • valence close: 0.56 vs target 0.58 (+9.8)
+         • tempo: 78.0 bpm vs target 77 bpm (+5.0)
+
+  #2  Library Rain  —  Paper Lanterns
+       Score : 97.6 / 100
+       Genre : lofi  |  Mood: chill
+       Why   :
+         • genre match: 'lofi' (+30.0)
+         • mood exact match: 'chill' (+20.0)
+         • energy close: 0.35 vs target 0.39 (+19.2)
+         • acousticness close: 0.86 vs target 0.78 (+13.8)
+         • valence close: 0.6 vs target 0.58 (+9.8)
+         • tempo: 72.0 bpm vs target 77 bpm (+4.8)
+
+  #3  Focus Flow  —  LoRoom
+       Score : 89.6 / 100
+       Genre : lofi  |  Mood: focused
+       Why   :
+         • genre match: 'lofi' (+30.0)
+         • mood compatible: 'focused' is in same group as 'chill' (+10.0)
+         • energy close: 0.4 vs target 0.39 (+19.8)
+         • acousticness close: 0.78 vs target 0.78 (+15.0)
+         • valence close: 0.59 vs target 0.58 (+9.9)
+         • tempo: 80.0 bpm vs target 77 bpm (+4.9)
+
+  #4  Spacewalk Thoughts  —  Orbit Bloom
+       Score : 64.2 / 100
+       Genre : ambient  |  Mood: chill
+       Why   :
+         • genre mismatch: 'ambient' vs 'lofi' (+0.0)
+         • mood exact match: 'chill' (+20.0)
+         • energy close: 0.28 vs target 0.39 (+17.8)
+         • acousticness close: 0.92 vs target 0.78 (+12.9)
+         • valence close: 0.65 vs target 0.58 (+9.3)
+         • tempo: 60.0 bpm vs target 77 bpm (+4.2)
+
+  #5  Sunday Sonata  —  Elara Strings
+       Score : 52.2 / 100
+       Genre : classical  |  Mood: peaceful
+       Why   :
+         • genre mismatch: 'classical' vs 'lofi' (+0.0)
+         • mood compatible: 'peaceful' is in same group as 'chill' (+10.0)
+         • energy close: 0.22 vs target 0.39 (+16.6)
+         • acousticness close: 0.95 vs target 0.78 (+12.4)
+         • valence close: 0.72 vs target 0.58 (+8.6)
+         • tempo: 68.0 bpm vs target 77 bpm (+4.6)
+
+============================================================
+```
+
+---
+
+### Profile 3 — Deep Intense Rock
+
+```
+============================================================
+  PROFILE: Deep Intense Rock
+============================================================
+  genre       : rock
+  mood        : intense
+  energy      : 0.91
+  acousticness: 0.1
+  valence     : 0.48
+  tempo_bpm   : 152
+
+  TOP 5 RECOMMENDATIONS
+  --------------------------------------------------------
+
+  #1  Storm Runner  —  Voltline
+       Score : 100.0 / 100
+       Genre : rock  |  Mood: intense
+       Why   :
+         • genre match: 'rock' (+30.0)
+         • mood exact match: 'intense' (+20.0)
+         • energy close: 0.91 vs target 0.91 (+20.0)
+         • acousticness close: 0.1 vs target 0.1 (+15.0)
+         • valence close: 0.48 vs target 0.48 (+10.0)
+         • tempo: 152.0 bpm vs target 152 bpm (+5.0)
+
+  #2  Gym Hero  —  Max Pulse
+       Score : 65.0 / 100
+       Genre : pop  |  Mood: intense
+       Why   :
+         • genre mismatch: 'pop' vs 'rock' (+0.0)
+         • mood exact match: 'intense' (+20.0)
+         • energy close: 0.93 vs target 0.91 (+19.6)
+         • acousticness close: 0.05 vs target 0.1 (+14.2)
+         • valence far: 0.77 vs target 0.48 (+7.1)
+         • tempo: 132.0 bpm vs target 152 bpm (+4.1)
+
+  #3  Iron Curtain  —  Wraith Engine
+       Score : 55.2 / 100
+       Genre : metal  |  Mood: angry
+       Why   :
+         • genre mismatch: 'metal' vs 'rock' (+0.0)
+         • mood compatible: 'angry' is in same group as 'intense' (+10.0)
+         • energy close: 0.97 vs target 0.91 (+18.8)
+         • acousticness close: 0.04 vs target 0.1 (+14.1)
+         • valence close: 0.28 vs target 0.48 (+8.0)
+         • tempo: 168.0 bpm vs target 152 bpm (+4.3)
+
+  #4  Grid Collapse  —  Bass Architect
+       Score : 54.5 / 100
+       Genre : edm  |  Mood: energetic
+       Why   :
+         • genre mismatch: 'edm' vs 'rock' (+0.0)
+         • mood compatible: 'energetic' is in same group as 'intense' (+10.0)
+         • energy close: 0.96 vs target 0.91 (+19.0)
+         • acousticness close: 0.03 vs target 0.1 (+13.9)
+         • valence close: 0.71 vs target 0.48 (+7.7)
+         • tempo: 128.0 bpm vs target 152 bpm (+3.9)
+
+  #5  Night Drive Loop  —  Neon Echo
+       Score : 43.0 / 100
+       Genre : synthwave  |  Mood: moody
+       Why   :
+         • genre mismatch: 'synthwave' vs 'rock' (+0.0)
+         • mood mismatch: 'moody' vs 'intense' (+0.0)
+         • energy close: 0.75 vs target 0.91 (+16.8)
+         • acousticness close: 0.22 vs target 0.1 (+13.2)
+         • valence close: 0.49 vs target 0.48 (+9.9)
+         • tempo: 110.0 bpm vs target 152 bpm (+3.1)
+
+============================================================
+```
+
+---
+
+### Profile 4 — ADVERSARIAL: High-Energy Sad (conflicting preferences)
+
+```
+============================================================
+  PROFILE: ADVERSARIAL — High-Energy Sad
+============================================================
+  genre       : hip-hop
+  mood        : sad
+  energy      : 0.93
+  acousticness: 0.2
+  valence     : 0.3
+  tempo_bpm   : 140
+
+  TOP 5 RECOMMENDATIONS
+  --------------------------------------------------------
+
+  #1  Broken Clocks  —  Gray Verse
+       Score : 89.6 / 100
+       Genre : hip-hop  |  Mood: sad
+       Why   :
+         • genre match: 'hip-hop' (+30.0)
+         • mood exact match: 'sad' (+20.0)
+         • energy far: 0.58 vs target 0.93 (+13.0)
+         • acousticness close: 0.25 vs target 0.2 (+14.2)
+         • valence close: 0.32 vs target 0.3 (+9.8)
+         • tempo: 88.0 bpm vs target 140 bpm (+2.6)
+
+  #2  Storm Runner  —  Voltline
+       Score : 45.7 / 100
+       Genre : rock  |  Mood: intense
+       Why   :
+         • genre mismatch: 'rock' vs 'hip-hop' (+0.0)
+         • mood mismatch: 'intense' vs 'sad' (+0.0)
+         • energy close: 0.91 vs target 0.93 (+19.6)
+         • acousticness close: 0.1 vs target 0.2 (+13.5)
+         • valence close: 0.48 vs target 0.3 (+8.2)
+         • tempo: 152.0 bpm vs target 140 bpm (+4.4)
+
+  #3  Iron Curtain  —  Wraith Engine
+       Score : 45.3 / 100
+       Genre : metal  |  Mood: angry
+       Why   :
+         • genre mismatch: 'metal' vs 'hip-hop' (+0.0)
+         • mood mismatch: 'angry' vs 'sad' (+0.0)
+         • energy close: 0.97 vs target 0.93 (+19.2)
+         • acousticness close: 0.04 vs target 0.2 (+12.6)
+         • valence close: 0.28 vs target 0.3 (+9.8)
+         • tempo: 168.0 bpm vs target 140 bpm (+3.7)
+
+  #4  Night Drive Loop  —  Neon Echo
+       Score : 42.8 / 100
+       Genre : synthwave  |  Mood: moody
+       Why   :
+         • genre mismatch: 'synthwave' vs 'hip-hop' (+0.0)
+         • mood mismatch: 'moody' vs 'sad' (+0.0)
+         • energy close: 0.75 vs target 0.93 (+16.4)
+         • acousticness close: 0.22 vs target 0.2 (+14.7)
+         • valence close: 0.49 vs target 0.3 (+8.1)
+         • tempo: 110.0 bpm vs target 140 bpm (+3.6)
+
+  #5  Gym Hero  —  Max Pulse
+       Score : 42.7 / 100
+       Genre : pop  |  Mood: intense
+       Why   :
+         • genre mismatch: 'pop' vs 'hip-hop' (+0.0)
+         • mood mismatch: 'intense' vs 'sad' (+0.0)
+         • energy close: 0.93 vs target 0.93 (+20.0)
+         • acousticness close: 0.05 vs target 0.2 (+12.8)
+         • valence far: 0.77 vs target 0.3 (+5.3)
+         • tempo: 132.0 bpm vs target 140 bpm (+4.6)
+
+============================================================
+```
+
+---
+
+### Profile 5 — ADVERSARIAL: Dead Average (all numerics at 0.5)
+
+```
+============================================================
+  PROFILE: ADVERSARIAL — Dead Average
+============================================================
+  genre       : ambient
+  mood        : peaceful
+  energy      : 0.5
+  acousticness: 0.5
+  valence     : 0.5
+  tempo_bpm   : 114
+
+  TOP 5 RECOMMENDATIONS
+  --------------------------------------------------------
+
+  #1  Spacewalk Thoughts  —  Orbit Bloom
+       Score : 75.3 / 100
+       Genre : ambient  |  Mood: chill
+       Why   :
+         • genre match: 'ambient' (+30.0)
+         • mood compatible: 'chill' is in same group as 'peaceful' (+10.0)
+         • energy close: 0.28 vs target 0.5 (+15.6)
+         • acousticness far: 0.92 vs target 0.5 (+8.7)
+         • valence close: 0.65 vs target 0.5 (+8.5)
+         • tempo: 60.0 bpm vs target 114 bpm (+2.5)
+
+  #2  Sunday Sonata  —  Elara Strings
+       Score : 53.3 / 100
+       Genre : classical  |  Mood: peaceful
+       Why   :
+         • genre mismatch: 'classical' vs 'ambient' (+0.0)
+         • mood exact match: 'peaceful' (+20.0)
+         • energy far: 0.22 vs target 0.5 (+14.4)
+         • acousticness far: 0.95 vs target 0.5 (+8.2)
+         • valence close: 0.72 vs target 0.5 (+7.8)
+         • tempo: 68.0 bpm vs target 114 bpm (+2.9)
+
+  #3  Midnight Coding  —  LoRoom
+       Score : 53.0 / 100
+       Genre : lofi  |  Mood: chill
+       Why   :
+         • genre mismatch: 'lofi' vs 'ambient' (+0.0)
+         • mood compatible: 'chill' is in same group as 'peaceful' (+10.0)
+         • energy close: 0.42 vs target 0.5 (+18.4)
+         • acousticness close: 0.71 vs target 0.5 (+11.8)
+         • valence close: 0.56 vs target 0.5 (+9.4)
+         • tempo: 78.0 bpm vs target 114 bpm (+3.3)
+
+  #4  Focus Flow  —  LoRoom
+       Score : 51.3 / 100
+       Genre : lofi  |  Mood: focused
+       Why   :
+         • genre mismatch: 'lofi' vs 'ambient' (+0.0)
+         • mood compatible: 'focused' is in same group as 'peaceful' (+10.0)
+         • energy close: 0.4 vs target 0.5 (+18.0)
+         • acousticness far: 0.78 vs target 0.5 (+10.8)
+         • valence close: 0.59 vs target 0.5 (+9.1)
+         • tempo: 80.0 bpm vs target 114 bpm (+3.4)
+
+  #5  Library Rain  —  Paper Lanterns
+       Score : 48.7 / 100
+       Genre : lofi  |  Mood: chill
+       Why   :
+         • genre mismatch: 'lofi' vs 'ambient' (+0.0)
+         • mood compatible: 'chill' is in same group as 'peaceful' (+10.0)
+         • energy close: 0.35 vs target 0.5 (+17.0)
+         • acousticness far: 0.86 vs target 0.5 (+9.6)
+         • valence close: 0.6 vs target 0.5 (+9.0)
+         • tempo: 72.0 bpm vs target 114 bpm (+3.1)
+
+============================================================
+```
+
+---
+
+### Profile 6 — ADVERSARIAL: Genre Desert (only one country song exists)
+
+```
+============================================================
+  PROFILE: ADVERSARIAL — Genre Desert (country)
+============================================================
+  genre       : country
+  mood        : nostalgic
+  energy      : 0.48
+  acousticness: 0.72
+  valence     : 0.68
+  tempo_bpm   : 100
+
+  TOP 5 RECOMMENDATIONS
+  --------------------------------------------------------
+
+  #1  Dust Roads Home  —  The Pines
+       Score : 100.0 / 100
+       Genre : country  |  Mood: nostalgic
+       Why   :
+         • genre match: 'country' (+30.0)
+         • mood exact match: 'nostalgic' (+20.0)
+         • energy close: 0.48 vs target 0.48 (+20.0)
+         • acousticness close: 0.72 vs target 0.72 (+15.0)
+         • valence close: 0.68 vs target 0.68 (+10.0)
+         • tempo: 100.0 bpm vs target 100 bpm (+5.0)
+
+  #2  Paper Boats  —  Hollow Fern
+       Score : 51.0 / 100
+       Genre : folk  |  Mood: melancholic
+       Why   :
+         • genre mismatch: 'folk' vs 'country' (+0.0)
+         • mood compatible: 'melancholic' is in same group as 'nostalgic' (+10.0)
+         • energy close: 0.31 vs target 0.48 (+16.6)
+         • acousticness close: 0.88 vs target 0.72 (+12.6)
+         • valence close: 0.44 vs target 0.68 (+7.6)
+         • tempo: 82.0 bpm vs target 100 bpm (+4.2)
+
+  #3  Broken Clocks  —  Gray Verse
+       Score : 46.8 / 100
+       Genre : hip-hop  |  Mood: sad
+       Why   :
+         • genre mismatch: 'hip-hop' vs 'country' (+0.0)
+         • mood compatible: 'sad' is in same group as 'nostalgic' (+10.0)
+         • energy close: 0.58 vs target 0.48 (+18.0)
+         • acousticness far: 0.25 vs target 0.72 (+8.0)
+         • valence far: 0.32 vs target 0.68 (+6.4)
+         • tempo: 88.0 bpm vs target 100 bpm (+4.4)
+
+  #4  Midnight Coding  —  LoRoom
+       Score : 46.4 / 100
+       Genre : lofi  |  Mood: chill
+       Why   :
+         • genre mismatch: 'lofi' vs 'country' (+0.0)
+         • mood mismatch: 'chill' vs 'nostalgic' (+0.0)
+         • energy close: 0.42 vs target 0.48 (+18.8)
+         • acousticness close: 0.71 vs target 0.72 (+14.8)
+         • valence close: 0.56 vs target 0.68 (+8.8)
+         • tempo: 78.0 bpm vs target 100 bpm (+4.0)
+
+  #5  Focus Flow  —  LoRoom
+       Score : 45.7 / 100
+       Genre : lofi  |  Mood: focused
+       Why   :
+         • genre mismatch: 'lofi' vs 'country' (+0.0)
+         • mood mismatch: 'focused' vs 'nostalgic' (+0.0)
+         • energy close: 0.4 vs target 0.48 (+18.4)
+         • acousticness close: 0.78 vs target 0.72 (+14.1)
+         • valence close: 0.59 vs target 0.68 (+9.1)
+         • tempo: 80.0 bpm vs target 100 bpm (+4.1)
+
+============================================================
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
