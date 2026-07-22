@@ -13,3 +13,7 @@ venv/
 
 # Pytest cache
 .pytest_cache/
+
+# Agent logs and secrets
+logs/
+.env

@@ -9,11 +9,14 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
+import argparse
 import os
 try:
     from src.recommender import load_songs, recommend_songs  # python -m src.main
+    from src.agent import run_agentic_recommendation
 except ImportError:
     from recommender import load_songs, recommend_songs      # python main.py inside src/
+    from agent import run_agentic_recommendation
 
 CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "songs.csv")
 
@@ -105,9 +108,61 @@ def print_recommendations(label: str, user_prefs: dict, songs: list) -> None:
     print("\n" + "=" * 60)
 
 
+def run_chat(songs: list) -> None:
+    """
+    Interactive agentic mode: describe your taste in plain English and the
+    Gemini-powered agent (src/agent.py) extracts a structured profile,
+    scores the catalog with the existing recommender, and explains the
+    picks grounded in those exact scores. Type 'quit' to exit.
+    """
+    print("\nDescribe the music you're in the mood for (or type 'quit').")
+    while True:
+        try:
+            user_text = input("\n> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not user_text:
+            continue
+        if user_text.lower() in {"quit", "exit"}:
+            break
+
+        result = run_agentic_recommendation(user_text, songs, k=5)
+        if not result["ok"]:
+            print(f"\n[!] {result['error']}")
+            continue
+
+        profile = dict(result["profile"])
+        confidence = profile.pop("confidence", None)
+        print("\nDerived taste profile:")
+        for key, val in profile.items():
+            print(f"  {key:<12}: {val}")
+        if confidence is not None:
+            print(f"  {'confidence':<12}: {confidence}  (1.0 = no guardrail corrections needed)")
+
+        print("\nTop picks:")
+        for rank, (song, score, _reasons) in enumerate(result["recommendations"], start=1):
+            print(f"  #{rank}  {song['title']} — {song['artist']}  ({score:.1f}/100)")
+
+        print("\nWhy:")
+        print(f"  {result['explanation']}")
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Music Recommender Simulation")
+    parser.add_argument(
+        "--chat",
+        action="store_true",
+        help="Run the interactive natural-language agent instead of the fixed demo profiles.",
+    )
+    args = parser.parse_args()
+
     songs = load_songs(CSV_PATH)
     print(f"Loaded songs: {len(songs)}")
+
+    if args.chat:
+        run_chat(songs)
+        return
 
     for label, prefs in PROFILES.items():
         print_recommendations(label, prefs, songs)

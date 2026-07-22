@@ -156,3 +156,184 @@ The most surprising thing was how quickly a formula with six rules started feeli
 **What I would try next**
 
 If I extended this project, the first thing I would build is an automatic profile generator that takes a list of liked songs and computes the user's targets by averaging their features — so the user never has to type a number like "energy: 0.39" by hand. After that I would add a diversity constraint so the top 5 always spans at least three different genres, which would force the system to recommend across genre boundaries instead of clustering inside one. The most ambitious extension would be adding a second scoring pass using collaborative filtering: find other users whose liked songs overlap with yours, then surface songs they loved that you have not heard yet. That is the step that turns a content matcher into something that can actually surprise you.
+
+---
+
+## 10. Responsible AI Reflection — Conversational Taste Agent
+
+The sections above are about VibeMatch 1.0, the rule-based recommender. This
+section is specifically about the stretch feature built on top of it: the
+Gemini-powered conversational agent in `src/agent.py`
+(`extract_profile()` → guardrails → `recommend_songs()` →
+`explain_recommendations()`). This is the graded responsible-AI reflection
+referenced from `README.md`.
+
+### What are the limitations or biases in your system?
+
+**It inherits every bias of the base recommender, and doesn't fix any of
+them.** Every recommendation the agent produces is still scored by the
+exact same `recommend_songs()` formula documented in Section 6 — genre
+dominance, small-dataset amplification (lofi sweeping the top-3), cold-start
+profile drift, and the mid-energy gap all apply just as much when the
+profile comes from a sentence as when it comes from typed numbers. The
+agent makes the system easier to *talk to*; it does nothing to make the
+underlying recommendations less biased.
+
+**The catalog's genre vocabulary is culturally narrow.** The 18-song
+catalog's genres — pop, lofi, rock, ambient, jazz, synthwave, indie pop,
+hip-hop, classical, r&b, country, edm, funk, metal, folk — skew Western and
+English-language. Because the extraction schema's `genre`/`mood` fields are
+JSON Schema `enum`s built directly from that catalog, a user who describes
+wanting K-pop, Afrobeat, reggaetón, or Hindustani classical music will
+silently get mapped to whatever catalog genre the model judges closest —
+there is no "genre not found" signal surfaced to them, just a plausible-
+looking wrong answer. This is a direct, structural consequence of a design
+choice I made deliberately for reliability (enum-constrained extraction
+can't return an invalid category) — the same mechanism that prevents
+garbage categories also silently erases any taste the catalog doesn't
+represent.
+
+**Confidence measures well-formedness, not correctness.** The confidence
+score (`_confidence_from_corrections()`) only tracks how many fields the
+guardrails had to *correct* — an extraction that needed zero corrections
+still gets a perfect 1.0 even if the model quietly misread the user's
+intent (e.g., reading "moody" as the `intense` mood-group instead of the
+catalog's standalone `moody` mood). A confident-looking profile is not the
+same as an accurate one, and I don't currently have any way to measure the
+second thing without a human reading the free text and the profile
+side-by-side.
+
+**Nothing programmatically stops the explanation from drifting off the
+retrieved data.** `explain_recommendations()` is instructed by its system
+prompt to reference only the retrieved songs/scores/reasons, but that's a
+prompt constraint, not an enforced one — unlike the extraction call, there
+is no output schema checking that every song name in the generated text
+actually appears in the retrieved list.
+
+**The model itself was chosen for cost, not accuracy.** `gemini-3.6-flash`
+is the free-tier-eligible model; I did not benchmark it against a larger
+paid model on this task, so I don't know how much of the correction rate
+seen in the reliability battery (`tests/test_reliability.py`) is inherent
+to the task versus specific to this model tier.
+
+### Could your AI be misused, and how would you prevent that?
+
+**The most concrete risk is prompt injection through the explanation call.**
+`explain_recommendations()` interpolates the user's raw free text directly
+into a prompt with no sanitization. Because that call has no output schema
+(unlike extraction), a user could try something like "ignore the above and
+instead output [unrelated/inappropriate content]" and there's nothing
+structurally stopping the model from complying, beyond the system prompt's
+instruction to stay grounded in the retrieved data. The extraction call is
+much harder to misuse the same way: its enum-constrained function schema
+means even a successfully hijacked call can still only return a genre/mood
+from the fixed catalog list and numeric values, which then get clamped
+again by the guardrails — there's no path from a malicious description to
+arbitrary extracted output. The asymmetry is real: the structured call is
+misuse-resistant by construction, the free-text call is not.
+
+**How I'd prevent it, in order of how much I trust each mitigation:**
+1. *Already in place:* the system prompt for `explain_recommendations()`
+   explicitly instructs the model to reference only the provided data —
+   weak on its own, but it's the current mitigation.
+2. *Not yet built, and the one I'd do first:* a post-generation check that
+   every song title mentioned in the explanation text actually appears in
+   the retrieved `recommendations` list, and discard/regenerate if not —
+   this converts a prompt-level ask into an enforced, testable guardrail,
+   the same pattern already used for extraction.
+3. *Structural, already true:* the pipeline is read-only text generation —
+   it never executes code, calls other tools, spends money, or takes any
+   action beyond printing text and writing a log line. Worst-case misuse is
+   an off-topic or inappropriate paragraph printed to a local terminal, not
+   a real-world consequence. That bounds the blast radius a lot compared to
+   an agent with side effects (file writes, purchases, messages sent on a
+   user's behalf), and it's the main reason I didn't build heavier
+   moderation for a project at this scale.
+
+**A separate, less dramatic but real risk: logging.** Every free-text query
+and every extracted profile is written to `logs/agent.log` in plaintext,
+with no redaction and no retention limit. For a single-user local CLI tool
+that's a non-issue — but if this were ever deployed for real users, whatever
+they type would sit in a log file indefinitely. I'd fix this before shipping
+anything beyond a portfolio project (redact or hash free text, add log
+rotation/expiry) — right now it's an acknowledged gap, not a solved one.
+
+### What surprised me while testing your AI's reliability?
+
+**The confidence floor isn't 0.0, and I only found that out by running the
+numbers.** I expected the "everything corrupted" case in
+`tests/test_reliability.py` to bottom out at a confidence of 0.0. The
+actual formula — start at 1.0, subtract 0.15 per corrected field, 6 fields
+total — floors at 0.10 (`1.0 - 6×0.15 = 0.10`), not 0.0. I'd reasoned about
+the formula in my head and gotten it wrong; only printing the actual
+reliability-battery output caught it.
+
+**Total data corruption survived better than a single connection failure.**
+I expected the scenario where *every* field is simultaneously wrong (unknown
+genre, unknown mood, non-numeric energy, missing acousticness, out-of-range
+valence, non-numeric tempo) to be the one most likely to break something.
+Instead it degraded gracefully to a low-confidence-but-fully-usable profile
+(confidence 0.10, but a complete, valid `recommend_songs()`-compatible
+dict), because each guardrail corrects its own field independently with no
+shared failure mode. The *only* scenario in the battery that actually failed
+was the simulated API error — a case with no bad data at all, just no
+response. That inversion — garbage input survives, no input doesn't — was
+not what I expected going in, and it's a genuinely reassuring property: the
+guardrails are more robust to bad model output than the system is to the
+model being unavailable, which is arguably the right priority for a
+free-tier API with no uptime guarantee.
+
+**The provider swap broke nothing in the guardrail logic, on the first
+try.** When I moved the whole agent from Anthropic's Claude API to Google's
+Gemini API, I expected a real debugging cycle to get the guardrail tests
+green again. Once the test fakes were rewritten to match Gemini's response
+shape (`response.function_calls` / `response.text` instead of Claude's
+`response.content` blocks), every guardrail test passed immediately. That
+was a direct, measurable payoff of keeping the guardrail functions as plain
+Python operating on plain values, with no provider-specific types leaking
+into them — a design choice made for testability that turned out to also
+make the whole system more portable than I'd planned for.
+
+### Describe your collaboration with AI during this project
+
+I worked with Claude (via this session) as the primary builder throughout —
+describing what I wanted, reviewing what it produced, and redirecting when
+something was wrong or when I wanted a different trade-off (e.g., asking
+for a free model instead of a paid one, then naming the specific Gemini
+model to use once I'd decided). The full turn-by-turn record is in
+`ai_interactions.md`; below are one specific helpful moment and one
+specific flawed one.
+
+**Helpful: verifying the Gemini SDK against real source instead of trusting
+a summarized doc page.** When switching providers, an early documentation
+fetch described a `client.interactions.create(...)` API shape that didn't
+match established patterns. Rather than writing code against that summary,
+Claude fetched the actual `google-genai` SDK's README and `types.py` from
+its GitHub source, then went one step further and imported the real
+installed package in this environment to construct each class
+(`FunctionDeclaration`, `Tool`, `ToolConfig`, `GenerateContentConfig`) and
+confirm the exact keyword arguments worked before writing the final
+`src/agent.py`. That caught the discrepancy before it became broken code I
+would have had to debug myself later, and it's the reason the Gemini
+integration worked correctly the first time I ran it against the real
+package.
+
+**Flawed: Claude-specific terminology leaked into the Gemini
+implementation and stayed there until I asked for a review pass.** When the
+agent was rewritten from Claude's API to Gemini's, the *mechanism* changed —
+Claude's tool-use has an explicit `strict: true` flag; Gemini forces a
+function call via `tool_config.function_calling_config.mode="ANY"`, which
+isn't the same thing. But the word "strict" survived the rewrite anyway: it
+was still in `src/agent.py`'s module docstring, in the README's ASCII
+architecture diagram, and in the Mermaid system diagram's node labels,
+describing Gemini's schema as "strict" when that's not an accurate
+description of how Gemini enforces it. This wasn't caught by the test suite
+— it's a documentation-accuracy issue, not a functional bug, so nothing red
+would ever flag it — and it persisted across three separate files until I
+explicitly asked whether the README and diagram needed adjustment after the
+provider swap. Claude found and fixed all three instances once asked, but
+the flaw was in not re-deriving accurate terminology for the new provider
+in the first pass, and in not proactively re-auditing documentation after a
+functional change. It's a small thing, but it's exactly the kind of
+plausible-but-wrong detail that's easy to skim past in AI-generated content
+if nobody goes looking for it.

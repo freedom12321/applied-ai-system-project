@@ -1,0 +1,471 @@
+<title>VibeMatch — Presentation</title>
+<style>
+  :root {
+    --ink: #eeeee7;
+    --panel: #e1e0d6;
+    --panel-2: #d7d6ca;
+    --text: #1a1d22;
+    --text-dim: #52564f;
+    --line: #c7c6b9;
+    --accent: #c17a1f;
+    --accent-text: #1a1d22;
+    --teal: #2f8c81;
+    --coral: #c14a3a;
+    --font-display: 'Avenir Next', 'Futura PT', 'Century Gothic', Avenir, sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #15181d;
+      --panel: #1d2229;
+      --panel-2: #262c34;
+      --text: #ede9df;
+      --text-dim: #9a9d97;
+      --line: #363c44;
+      --accent: #f0a83c;
+      --accent-text: #15181d;
+      --teal: #4fb3a9;
+      --coral: #e2604f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #15181d; --panel: #1d2229; --panel-2: #262c34; --text: #ede9df;
+    --text-dim: #9a9d97; --line: #363c44; --accent: #f0a83c; --accent-text: #15181d;
+    --teal: #4fb3a9; --coral: #e2604f;
+  }
+  :root[data-theme="light"] {
+    --ink: #eeeee7; --panel: #e1e0d6; --panel-2: #d7d6ca; --text: #1a1d22;
+    --text-dim: #52564f; --line: #c7c6b9; --accent: #c17a1f; --accent-text: #1a1d22;
+    --teal: #2f8c81; --coral: #c14a3a;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--ink); color: var(--text);
+    font-family: var(--font-body);
+    overflow: hidden;
+  }
+  ::selection { background: var(--accent); color: var(--accent-text); }
+
+  .deck {
+    position: relative;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: clamp(28px, 5vw, 72px) clamp(32px, 7vw, 96px);
+    opacity: 0; visibility: hidden;
+    transform: translateY(14px);
+    transition: opacity .38s ease, transform .38s ease, visibility 0s linear .38s;
+  }
+  .slide.active {
+    opacity: 1; visibility: visible; transform: translateY(0);
+    transition: opacity .38s ease, transform .38s ease, visibility 0s linear 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition: opacity .01s linear; transform: none; }
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: clamp(18px, 3vh, 30px);
+  }
+  .eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  h1, h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-wrap: balance;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .slide-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .slide-foot {
+    margin-top: auto;
+    padding-top: 18px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--line);
+  }
+
+  p.lede {
+    font-size: clamp(16px, 1.7vw, 20px);
+    line-height: 1.55;
+    max-width: 62ch;
+    color: var(--text-dim);
+  }
+
+  /* ---- module cards (console-panel language) ---- */
+  .module {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 20px 24px;
+  }
+  .module::before, .module::after {
+    content: "";
+    position: absolute;
+    width: 9px; height: 9px;
+    border: 2px solid var(--accent);
+  }
+  .module::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .module::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  .module h3 {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 12px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  code, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---- title slide ---- */
+  .title-slide { justify-content: center; }
+  .title-slide h1 {
+    font-size: clamp(52px, 9vw, 108px);
+    line-height: .96;
+  }
+  .title-slide .accent-word { color: var(--accent); }
+  .title-slide .sub {
+    margin-top: 22px;
+    font-size: clamp(17px, 2vw, 23px);
+    color: var(--text-dim);
+    max-width: 46ch;
+  }
+
+  /* ---- score bar (slide 3) ---- */
+  .score-bar {
+    display: flex; height: 34px; border-radius: 3px; overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .score-seg { display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 11px; color: var(--accent-text);
+    white-space: nowrap; }
+  .score-legend { display: flex; flex-wrap: wrap; gap: 14px 22px; margin-top: 14px; }
+  .score-legend .item { display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim); }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+
+  /* ---- pipeline (slide 3) ---- */
+  .pipeline { display: flex; flex-direction: column; gap: 0; }
+  .pipe-step { display: grid; grid-template-columns: 90px 1fr; gap: 16px;
+    padding: 12px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+  .pipe-step:last-child { border-bottom: none; }
+  .pipe-tag { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em;
+    color: var(--accent); }
+  .pipe-desc b { color: var(--text); }
+  .pipe-desc { color: var(--text-dim); font-size: 14.5px; line-height: 1.5; }
+
+  /* ---- demo slide ---- */
+  .demo-cues { list-style: none; margin: 26px 0 0; padding: 0;
+    display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
+  .demo-cues li { display: flex; gap: 16px; align-items: baseline;
+    font-size: 18px; }
+  .demo-cues .n { font-family: var(--font-mono); color: var(--accent); font-size: 14px; }
+  .term-hint { margin-top: 30px; font-family: var(--font-mono); font-size: 13px;
+    color: var(--text-dim); border-left: 2px solid var(--accent); padding-left: 14px; }
+
+  /* ---- reliability readout ---- */
+  .readout { display: flex; flex-wrap: wrap; gap: 18px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+    padding: 18px 22px; min-width: 168px; flex: 1; }
+  .stat .num { font-family: var(--font-mono); font-size: clamp(28px, 3.4vw, 40px);
+    font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
+  .stat .label { margin-top: 8px; font-size: 12.5px; color: var(--text-dim);
+    letter-spacing: .02em; }
+  .stat.pass .num { color: var(--teal); }
+  .stat.fail .num { color: var(--coral); }
+  .stat.neutral .num { color: var(--accent); }
+
+  .battery-log { margin-top: 20px; background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 3px; padding: 16px 20px; font-family: var(--font-mono); font-size: 12.5px;
+    line-height: 1.7; overflow-x: auto; white-space: pre; }
+  .battery-log .ok { color: var(--teal); }
+  .battery-log .no { color: var(--coral); }
+
+  /* ---- learned slide ---- */
+  .learned-card h3 { display: flex; align-items: center; gap: 8px; }
+  .tag { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em;
+    padding: 2px 7px; border-radius: 2px; text-transform: uppercase; }
+  .tag.helpful { background: color-mix(in srgb, var(--teal) 20%, transparent); color: var(--teal); }
+  .tag.flawed { background: color-mix(in srgb, var(--coral) 20%, transparent); color: var(--coral); }
+  .learned-card p { font-size: 14.5px; line-height: 1.55; color: var(--text-dim); margin: 0; }
+
+  /* ---- close slide ---- */
+  .close-slide { justify-content: center; }
+  .close-slide h2 { font-size: clamp(30px, 4.2vw, 48px); max-width: 16ch; }
+  .close-links { margin-top: 26px; display: flex; gap: 26px; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
+
+  /* ---- nav ---- */
+  .nav {
+    position: fixed; bottom: 22px; right: 28px;
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim);
+    z-index: 20;
+  }
+  .nav button {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--panel); color: var(--text);
+    cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .nav button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px; background: var(--accent);
+    z-index: 21; transition: width .35s ease;
+  }
+  @media (prefers-reduced-motion: reduce) { .progress { transition: none; } }
+
+  @media (max-width: 720px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .readout { flex-direction: column; }
+  }
+</style>
+
+<div class="progress" id="progress" style="width: 14.28%;"></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1 — TITLE -->
+  <section class="slide active title-slide">
+    <div class="eyebrow">CodePath · Applied AI Systems</div>
+    <div class="slide-body">
+      <h1>Vibe<span class="accent-word">Match</span></h1>
+      <p class="sub">A transparent, rule-based music recommender — extended with a
+      guardrailed AI agent that turns a sentence into a scored, explained
+      recommendation.</p>
+    </div>
+    <div class="slide-foot">
+      <span>Built on <span class="mono">module3show-musicrecommendersimulation-starter</span></span>
+      <span>1 / 7</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 — ORIGIN -->
+  <section class="slide">
+    <div class="eyebrow">01 — Origin</div>
+    <div class="slide-body">
+      <h2 style="font-size: clamp(30px, 4vw, 46px); max-width: 20ch;">
+        Started from a CodePath starter template
+      </h2>
+      <p class="lede" style="margin-top: 18px;">
+        The assignment: represent songs and a listener's taste as data, design a
+        transparent scoring rule, and reflect on how that mirrors real
+        recommenders like Spotify.
+      </p>
+      <div class="grid-2" style="margin-top: auto; padding-top: 28px;">
+        <div class="module">
+          <h3>What the starter gave me</h3>
+          <p class="lede" style="font-size: 14.5px;">An 18-song catalog and empty
+          <span class="mono">Song</span> / <span class="mono">UserProfile</span> /
+          scoring-function stubs to fill in.</p>
+        </div>
+        <div class="module">
+          <h3>What I built beyond it</h3>
+          <p class="lede" style="font-size: 14.5px;">A conversational agent layer —
+          because nobody actually types <span class="mono">energy: 0.39</span> by hand
+          to describe a mood.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot"><span>src/recommender.py — the original assignment</span><span>2 / 7</span></div>
+  </section>
+
+  <!-- SLIDE 3 — ARCHITECTURE -->
+  <section class="slide">
+    <div class="eyebrow">02 — Architecture</div>
+    <div class="slide-body">
+      <h2 style="font-size: clamp(28px, 3.6vw, 42px); max-width: 22ch;">
+        Two layers: deterministic core, guardrailed AI on top
+      </h2>
+      <div class="grid-2" style="margin-top: 26px; flex: 1; min-height: 0;">
+        <div class="module">
+          <h3>Layer 1 — scoring engine (100 pts)</h3>
+          <div class="score-bar">
+            <div class="score-seg" style="width:30%; background:#c17a1f;">Genre 30</div>
+            <div class="score-seg" style="width:20%; background:#2f8c81;">Mood 20</div>
+            <div class="score-seg" style="width:20%; background:#a8895a;">Energy 20</div>
+            <div class="score-seg" style="width:15%; background:#7d8f8a;">Acoustic 15</div>
+            <div class="score-seg" style="width:10%; background:#9a9d97; color:#1a1d22;">Val 10</div>
+            <div class="score-seg" style="width:5%; background:#c7c6b9; color:#1a1d22;">5</div>
+          </div>
+          <p class="lede" style="font-size: 13.5px; margin-top: 16px;">
+            No ML, no embeddings — every point traceable to one line of arithmetic
+            in <span class="mono">score_song()</span>.
+          </p>
+        </div>
+        <div class="module">
+          <h3>Layer 2 — agent pipeline</h3>
+          <div class="pipeline">
+            <div class="pipe-step"><div class="pipe-tag">PLAN</div>
+              <div class="pipe-desc"><b>extract_profile()</b> — Gemini, enum-constrained
+              function schema built from the live catalog</div></div>
+            <div class="pipe-step"><div class="pipe-tag">CHECK</div>
+              <div class="pipe-desc"><b>guardrails</b> — clamp, fall back, retry, compute
+              confidence</div></div>
+            <div class="pipe-step"><div class="pipe-tag">ACT</div>
+              <div class="pipe-desc"><b>recommend_songs()</b> — the same Layer-1 engine, no
+              shortcut</div></div>
+            <div class="pipe-step"><div class="pipe-tag">EXPLAIN</div>
+              <div class="pipe-desc"><b>explain_recommendations()</b> — grounded only in
+              the retrieved results</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-foot"><span>src/agent.py</span><span>3 / 7</span></div>
+  </section>
+
+  <!-- SLIDE 4 — LIVE DEMO -->
+  <section class="slide">
+    <div class="eyebrow">03 — Live Demo</div>
+    <div class="slide-body" style="justify-content: center;">
+      <h2 style="font-size: clamp(44px, 7vw, 84px);">Live Demo</h2>
+      <ul class="demo-cues">
+        <li><span class="n">A</span><span><span class="mono">python -m src.main</span> —
+        the base engine, six scored profiles</span></li>
+        <li><span class="n">B</span><span><span class="mono">python -m src.main --chat</span> —
+        describe a mood in plain English</span></li>
+        <li><span class="n">C</span><span>a deliberately bad extraction — watch the
+        guardrails correct it live</span></li>
+      </ul>
+      <div class="term-hint">If the live API call fails: same code path, captured
+      transcript is in the README's Execution Evidence section.</div>
+    </div>
+    <div class="slide-foot"><span>switching to terminal</span><span>4 / 7</span></div>
+  </section>
+
+  <!-- SLIDE 5 — RELIABILITY -->
+  <section class="slide">
+    <div class="eyebrow">04 — Reliability</div>
+    <div class="slide-body">
+      <h2 style="font-size: clamp(28px, 3.6vw, 42px); max-width: 20ch;">Proof, not a claim</h2>
+      <div class="readout" style="margin-top: 22px;">
+        <div class="stat pass"><div class="num">19 / 19</div><div class="label">automated tests passing — zero require an API key</div></div>
+        <div class="stat pass"><div class="num">5 / 6</div><div class="label">reliability-battery scenarios succeeded</div></div>
+        <div class="stat fail"><div class="num">1</div><div class="label">designed failure — correctly failed closed, no guessed profile</div></div>
+        <div class="stat neutral"><div class="num">0.67</div><div class="label">average confidence across the 5 successes (1.00 → 0.10 range)</div></div>
+      </div>
+      <div class="battery-log">--- Reliability summary: 5/6 extractions succeeded ---
+  clean extraction .............. <span class="ok">OK</span>  (confidence=1.00)
+  one out-of-range numeric ....... <span class="ok">OK</span>  (confidence=0.85)
+  one unknown category ........... <span class="ok">OK</span>  (confidence=0.85)
+  three bad fields ................ <span class="ok">OK</span>  (confidence=0.55)
+  all six fields corrupted ........ <span class="ok">OK</span>  (confidence=0.10)
+  unrecoverable API failure ....... <span class="no">FAILED CLOSED</span></div>
+    </div>
+    <div class="slide-foot"><span>pytest tests/test_reliability.py -v -s</span><span>5 / 7</span></div>
+  </section>
+
+  <!-- SLIDE 6 — WHAT I LEARNED -->
+  <section class="slide">
+    <div class="eyebrow">05 — What I Learned</div>
+    <div class="slide-body">
+      <h2 style="font-size: clamp(28px, 3.6vw, 42px); max-width: 20ch;">AI collaboration, both directions</h2>
+      <div class="grid-2" style="margin-top: 22px;">
+        <div class="module learned-card">
+          <h3><span class="tag helpful">Helpful</span></h3>
+          <p>When I switched providers, Claude verified the real Gemini SDK source
+          instead of trusting a summarized doc page — which described an API shape
+          that turned out not to match the actual package.</p>
+        </div>
+        <div class="module learned-card">
+          <h3><span class="tag flawed">Flawed</span></h3>
+          <p>Claude's own wording — "strict," specific to the old provider — leaked
+          into three files describing Gemini's different mechanism, and sat there
+          until I asked for a documentation review pass.</p>
+        </div>
+      </div>
+      <div class="module" style="margin-top: 20px;">
+        <h3>Limitation, stated plainly</h3>
+        <p class="lede" style="font-size: 14px;">The confidence score measures how much
+        correction was needed — not whether the result is actually right. A profile
+        needing zero corrections can still misread what someone meant.</p>
+      </div>
+    </div>
+    <div class="slide-foot"><span>full record in ai_interactions.md + model_card.md</span><span>6 / 7</span></div>
+  </section>
+
+  <!-- SLIDE 7 — CLOSE -->
+  <section class="slide close-slide">
+    <div class="eyebrow">06 — Close</div>
+    <div class="slide-body" style="justify-content: center;">
+      <h2>Transparent core.<br>Guardrailed AI.<br><span style="color: var(--accent);">Reliability you can check.</span></h2>
+      <div class="close-links">
+        <span>README.md — full execution evidence</span>
+        <span>model_card.md — responsible-AI reflection</span>
+        <span>tests/ — 19 passing, no API key required</span>
+      </div>
+    </div>
+    <div class="slide-foot"><span>Thank you — questions?</span><span>7 / 7</span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prevBtn" aria-label="Previous slide">‹</button>
+  <span id="counter">1 / 7</span>
+  <button id="nextBtn" aria-label="Next slide">›</button>
+</div>
+
+<script>
+  (function () {
+    var slides = document.querySelectorAll('.slide');
+    var total = slides.length;
+    var i = 0;
+    var counter = document.getElementById('counter');
+    var progress = document.getElementById('progress');
+
+    function render() {
+      slides.forEach(function (s, idx) { s.classList.toggle('active', idx === i); });
+      counter.textContent = (i + 1) + ' / ' + total;
+      progress.style.width = ((i + 1) / total * 100) + '%';
+    }
+    function go(delta) {
+      i = Math.max(0, Math.min(total - 1, i + delta));
+      render();
+    }
+    document.getElementById('nextBtn').addEventListener('click', function () { go(1); });
+    document.getElementById('prevBtn').addEventListener('click', function () { go(-1); });
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+    });
+    var touchX = null;
+    window.addEventListener('touchstart', function (e) { touchX = e.touches[0].clientX; });
+    window.addEventListener('touchend', function (e) {
+      if (touchX === null) return;
+      var dx = e.changedTouches[0].clientX - touchX;
+      if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+      touchX = null;
+    });
+    render();
+  })();
+</script>
